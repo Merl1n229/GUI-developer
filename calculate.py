@@ -1,45 +1,88 @@
 import tkinter as tk
+from functools import partial
 
 window = tk.Tk()
 window.title('Калькулятор3000')
-window.geometry('500x550')
+window.geometry('350x500')
 window.resizable(False, False)
 window.configure(bg='black')
 
-def calculate(operation):
-    global formula 
+def calculate(text):
+    global formula
 
-    if operation == 'C':
+    if text == 'C':
         formula = ''
-    elif operation == 'del':
-        formula = formula[0: -1]
-    elif operation == 'X^2':
+    elif text == 'X^2':
         formula = str((eval(formula)) ** 2)
-    elif operation == '=':
+    elif text == '=' or text == '\r':
         try:
-            formula = str(eval(formula))
+            if ('++' in formula) or ('--' in formula) or ('**' in formula) or ('//' in formula):
+                formula = 'Ошибка'
+            else:
+                formula = str(eval(formula))
         except ZeroDivisionError:
-            formula = "На 0 делить нельзя!"
+            formula = "На 0 делить\nнельзя!"
+        except Exception:
+            formula = "Ошибка"
+    elif text == 'del' or text == '\x08':
+        formula = formula[:-1]
     else:
         if formula == '0':
             formula = ''
-        formula += operation
+        if text in '0123456789/*-+':
+            if ((text in '/*-+') and (formula == '' or formula.endswith('+' or '-' or '*' or '/'))) or (text == '.' and '.' in formula):
+                formula = formula
+            else:
+                formula += text
     label_text.configure(text=formula)
 
-formula = '0'
-label_text = tk.Label(text=formula, font=('Roboto', 30, 'bold'), bg='black', fg='white')
-label_text.place(x=11, y=50)
+def keypress(event):
+    key = event.keysym
 
-buttons = ['C', 'del', '*', '=', '1', '2', '3', '/', '4', '5', '6', '-',
-           '7', '8', '9', '+', '0', '%', 'X^2']
-x = 18
-y = 140
+    if key == 'Return':
+        key = '='
+    elif key == 'plus':
+        key = '+'
+    elif key == 'BackSpace':
+        key = 'del'
+    elif key == 'minus':
+        key = '-'
+    elif key == 'asterisk':
+        key = '*' 
+    elif key == 'slash':
+        key = '/' 
+    elif key == 'period':
+        key = '.'  
+    elif key == 'decimal':
+        key = '.'  
+
+    if key:
+        calculate(key)
+
+
+formula = '0'
+label_text = tk.Label(text=formula, font=('Roboto', 30, 'bold'), bg='black', fg='white', wraplength=200) # Изменено значение wraplength
+label_text.grid(row=0, column=0, columnspan=4, pady=20)
+
+buttons = ['C', 'X^2', '%', '/',
+           '7', '8', '9', '*',
+           '4', '5', '6', '-',
+           '1', '2', '3', '+',
+           '0', '.', '=', 'del']
+
+row_val = 1
+col_val = 0
 for button in buttons:
-    get_lbl = lambda x=button: calculate(x)
-    tk.Button(text=button, bg='orange', font=('Roboto', 20), command=get_lbl).place(x=x, y=y, width=115, height=79)
-    x += 117
-    if x > 400:
-        x = 18
-        y += 81
+    tk.Button(text=button, bg='orange', font=('Roboto', 20), command=partial(calculate, button)).grid(row=row_val, column=col_val, sticky='nsew')
+    col_val += 1
+    if col_val > 3:
+        col_val = 0
+        row_val += 1
+
+for i in range(4):
+    window.grid_columnconfigure(i, weight=1)
+    window.grid_rowconfigure(i+1, weight=1)
+
+window.bind("<Key>", keypress)
 
 window.mainloop()
