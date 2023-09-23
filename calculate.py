@@ -30,11 +30,14 @@ def calculate(text):
         if formula == '0':
             formula = ''
         if text in '0123456789/*-+':
-            if ((text in '/*-+') and (formula == '' or formula.endswith('+' or '-' or '*' or '/'))) or (text == '.' and '.' in formula):
+            if ((text in '/*-+') and (formula == '' or formula.endswith('+' or '-' or '*' or '/'))):
                 formula = formula
             else:
                 formula += text
+        elif text == '.' and '.' not in formula:  
+            formula += text
     label_text.configure(text=formula)
+
 
 def keypress(event):
     key = event.keysym
@@ -48,16 +51,17 @@ def keypress(event):
     elif key == 'minus':
         key = '-'
     elif key == 'asterisk':
-        key = '*' 
+        key = '*'  
     elif key == 'slash':
-        key = '/' 
-    elif key == 'period':
-        key = '.'  
-    elif key == 'decimal':
-        key = '.'  
+        key = '/'  
+    elif key == 'period' or key == 'decimal':  
+        key = '.'
+    elif key == 'Escape':  
+        key = 'C'
 
     if key:
         calculate(key)
+
 
 
 formula = '0'
